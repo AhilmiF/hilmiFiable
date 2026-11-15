@@ -1,40 +1,29 @@
 import { useState, useEffect } from "react"
 import AdminLayout from "../../../components/admin/AdminLayout"
 import ConfirmModal from "../../../components/admin/ConfirmModal"
-import { useAuth } from "../../../context/AuthContext"
 
-const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
+// Posisi tim tetap mandiri (Partner, Legal Consultant, Lawyer Profile)
+const INITIAL_POSITIONS = [
+  { id: "partner", name: "PARTNER PROFILE", slug: "partner" },
+  { id: "legalConsultan", name: "LEGAL CONSULTANT PROFILE", slug: "legalConsultan" },
+  { id: "lawyer", name: "LAWYER PROFILE", slug: "lawyer" },
+]
 
 const ManagePosition = () => {
-  const { token } = useAuth()
-  const [positions, setPositions] = useState([])
-  const [view, setView] = useState("list") // "list" | "add" | "edit"
+  const [positions, setPositions] = useState(() => {
+    const saved = localStorage.getItem("fiable_team_positions")
+    return saved ? JSON.parse(saved) : INITIAL_POSITIONS
+  })
+  const [view, setView] = useState("list")
   const [form, setForm] = useState({ name: "", slug: "" })
   const [editId, setEditId] = useState(null)
   const [modal, setModal] = useState({ open: false, id: null })
   const [msg, setMsg] = useState({ type: "", text: "" })
-  const [loading, setLoading] = useState(false)
 
-  const fetchPositions = async () => {
-    try {
-      const res = await fetch(`${API}/position`)
-      const data = await res.json()
-      if (data.success && data.data) {
-        setPositions(data.data)
-      }
-    } catch {
-      // Fallback data default bila server sedang idle
-      setPositions([
-        { id: "1", name: "PARTNER PROFILE", slug: "partner" },
-        { id: "2", name: "LEGAL CONSULTANT PROFILE", slug: "legalConsultan" },
-        { id: "3", name: "LAWYER PROFILE", slug: "lawyer" },
-      ])
-    }
+  const savePositions = (updated) => {
+    setPositions(updated)
+    localStorage.setItem("fiable_team_positions", JSON.stringify(updated))
   }
-
-  useEffect(() => {
-    fetchPositions()
-  }, [])
 
   const handleNameChange = (e) => {
     const val = e.target.value
@@ -45,45 +34,29 @@ const ManagePosition = () => {
     setForm({ ...form, name: val, slug })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    setLoading(true)
     setMsg({ type: "", text: "" })
 
-    try {
-      const url = editId ? `${API}/position/admin/${editId}` : `${API}/position/admin`
-      const method = editId ? "PUT" : "POST"
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
-      })
-      const data = await res.json()
-      if (data.success) {
-        setMsg({ type: "success", text: editId ? "Posisi berhasil diperbarui." : "Posisi berhasil ditambahkan." })
-        fetchPositions()
-        setView("list")
-        setForm({ name: "", slug: "" })
-        setEditId(null)
-      } else {
-        setMsg({ type: "error", text: data.message })
+    if (editId) {
+      const updated = positions.map((p) =>
+        p.id === editId ? { ...p, name: form.name.toUpperCase(), slug: form.slug } : p
+      )
+      savePositions(updated)
+      setMsg({ type: "success", text: "Posisi berhasil diperbarui." })
+    } else {
+      const newPos = {
+        id: Date.now().toString(),
+        name: form.name.toUpperCase(),
+        slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-"),
       }
-    } catch {
-      // Bila offline, simpan state lokal
-      if (editId) {
-        setPositions((prev) =>
-          prev.map((item) => (item.id === editId ? { ...item, name: form.name.toUpperCase(), slug: form.slug } : item))
-        )
-      } else {
-        setPositions((prev) => [...prev, { id: Date.now().toString(), name: form.name.toUpperCase(), slug: form.slug }])
-      }
-      setMsg({ type: "success", text: "Posisi berhasil disimpan." })
-      setView("list")
-      setForm({ name: "", slug: "" })
-      setEditId(null)
-    } finally {
-      setLoading(false)
+      savePositions([...positions, newPos])
+      setMsg({ type: "success", text: "Posisi berhasil ditambahkan." })
     }
+
+    setView("list")
+    setForm({ name: "", slug: "" })
+    setEditId(null)
   }
 
   const handleEdit = (p) => {
@@ -93,25 +66,11 @@ const ManagePosition = () => {
     setMsg({ type: "", text: "" })
   }
 
-  const handleDelete = async () => {
-    try {
-      const res = await fetch(`${API}/position/admin/${modal.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (data.success) {
-        setMsg({ type: "success", text: "Posisi berhasil dihapus." })
-        fetchPositions()
-      } else {
-        setMsg({ type: "error", text: data.message })
-      }
-    } catch {
-      setPositions((prev) => prev.filter((item) => item.id !== modal.id))
-      setMsg({ type: "success", text: "Posisi berhasil dihapus." })
-    } finally {
-      setModal({ open: false, id: null })
-    }
+  const handleDelete = () => {
+    const updated = positions.filter((p) => p.id !== modal.id)
+    savePositions(updated)
+    setMsg({ type: "success", text: "Posisi berhasil dihapus." })
+    setModal({ open: false, id: null })
   }
 
   return (
@@ -208,8 +167,8 @@ const ManagePosition = () => {
                 >
                   Batal
                 </button>
-                <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? "Menyimpan..." : view === "edit" ? "Simpan Perubahan" : "Tambah"}
+                <button type="submit" className="btn-primary">
+                  {view === "edit" ? "Simpan Perubahan" : "Tambah"}
                 </button>
               </div>
             </form>
