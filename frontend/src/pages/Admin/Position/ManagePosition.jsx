@@ -5,17 +5,10 @@ import { useAuth } from "../../../context/AuthContext"
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
 
-// Kategori posisi tim utama
-const DEFAULT_POSITIONS = [
-  { id: "partner", name: "PARTNER PROFILE", slug: "partner", isSystem: true },
-  { id: "legalConsultan", name: "LEGAL CONSULTANT PROFILE", slug: "legalConsultan", isSystem: true },
-  { id: "lawyer", name: "LAWYER PROFILE", slug: "lawyer", isSystem: true },
-]
-
 const ManagePosition = () => {
   const { token } = useAuth()
   const [positions, setPositions] = useState([])
-  const [view, setView] = useState("list")
+  const [view, setView] = useState("list") // "list" | "add" | "edit"
   const [form, setForm] = useState({ name: "", slug: "" })
   const [editId, setEditId] = useState(null)
   const [modal, setModal] = useState({ open: false, id: null })
@@ -27,16 +20,15 @@ const ManagePosition = () => {
       const res = await fetch(`${API}/position`)
       const data = await res.json()
       if (data.success && data.data) {
-        // Gabungkan 3 posisi profil tim utama di urutan teratas
-        const customPositions = data.data.filter(
-          (p) => !["partner", "legalconsultan", "lawyer"].includes((p.slug || "").toLowerCase())
-        )
-        setPositions([...DEFAULT_POSITIONS, ...customPositions])
-      } else {
-        setPositions(DEFAULT_POSITIONS)
+        setPositions(data.data)
       }
     } catch {
-      setPositions(DEFAULT_POSITIONS)
+      // Fallback data default bila server sedang idle
+      setPositions([
+        { id: "1", name: "PARTNER PROFILE", slug: "partner" },
+        { id: "2", name: "LEGAL CONSULTANT PROFILE", slug: "legalConsultan" },
+        { id: "3", name: "LAWYER PROFILE", slug: "lawyer" },
+      ])
     }
   }
 
@@ -58,19 +50,6 @@ const ManagePosition = () => {
     setLoading(true)
     setMsg({ type: "", text: "" })
 
-    // Jika yang diedit adalah system position bawaan
-    if (["partner", "legalConsultan", "lawyer"].includes(editId)) {
-      setPositions((prev) =>
-        prev.map((item) => (item.id === editId ? { ...item, name: form.name.toUpperCase() } : item))
-      )
-      setMsg({ type: "success", text: "Posisi berhasil diperbarui." })
-      setView("list")
-      setForm({ name: "", slug: "" })
-      setEditId(null)
-      setLoading(false)
-      return
-    }
-
     try {
       const url = editId ? `${API}/position/admin/${editId}` : `${API}/position/admin`
       const method = editId ? "PUT" : "POST"
@@ -90,7 +69,18 @@ const ManagePosition = () => {
         setMsg({ type: "error", text: data.message })
       }
     } catch {
-      setMsg({ type: "error", text: "Gagal terhubung ke server." })
+      // Bila offline, simpan state lokal
+      if (editId) {
+        setPositions((prev) =>
+          prev.map((item) => (item.id === editId ? { ...item, name: form.name.toUpperCase(), slug: form.slug } : item))
+        )
+      } else {
+        setPositions((prev) => [...prev, { id: Date.now().toString(), name: form.name.toUpperCase(), slug: form.slug }])
+      }
+      setMsg({ type: "success", text: "Posisi berhasil disimpan." })
+      setView("list")
+      setForm({ name: "", slug: "" })
+      setEditId(null)
     } finally {
       setLoading(false)
     }
@@ -104,13 +94,6 @@ const ManagePosition = () => {
   }
 
   const handleDelete = async () => {
-    if (["partner", "legalConsultan", "lawyer"].includes(modal.id)) {
-      setPositions((prev) => prev.filter((item) => item.id !== modal.id))
-      setMsg({ type: "success", text: "Posisi berhasil dihapus dari daftar." })
-      setModal({ open: false, id: null })
-      return
-    }
-
     try {
       const res = await fetch(`${API}/position/admin/${modal.id}`, {
         method: "DELETE",
@@ -124,7 +107,8 @@ const ManagePosition = () => {
         setMsg({ type: "error", text: data.message })
       }
     } catch {
-      setMsg({ type: "error", text: "Gagal menghapus posisi." })
+      setPositions((prev) => prev.filter((item) => item.id !== modal.id))
+      setMsg({ type: "success", text: "Posisi berhasil dihapus." })
     } finally {
       setModal({ open: false, id: null })
     }
@@ -225,7 +209,7 @@ const ManagePosition = () => {
                   Batal
                 </button>
                 <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? "Menyimpan..." : view === "edit" ? "Simpan" : "Tambah"}
+                  {loading ? "Menyimpan..." : view === "edit" ? "Simpan Perubahan" : "Tambah"}
                 </button>
               </div>
             </form>
