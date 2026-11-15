@@ -3,7 +3,7 @@ import AdminLayout from "../../../components/admin/AdminLayout"
 import ConfirmModal from "../../../components/admin/ConfirmModal"
 import { useAuth } from "../../../context/AuthContext"
 
-const API = "http://localhost:5000/api/v1"
+const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
 
 const ManageGallery = () => {
   const { token } = useAuth()
@@ -92,7 +92,7 @@ const ManageGallery = () => {
             <div className="gallery-grid">
               {galleries.map((g) => (
                 <div key={g.id} className="gallery-item">
-                  <img src={`http://localhost:5000${g.photoUrl}`} alt="gallery" />
+                  <img src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : 'http://localhost:5000'}${g.photoUrl}`} alt="gallery" />
                   <button
                     type="button"
                     className="gallery-item__delete"

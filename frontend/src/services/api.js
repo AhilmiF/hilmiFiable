@@ -1,4 +1,15 @@
-const API_BASE_URL = "http://localhost:5000/api/v1"
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api/v1` 
+  : "http://localhost:5000/api/v1"
+
+export const getFileUrl = (path) => {
+  if (!path) return ""
+  if (path.startsWith("http://") || path.startsWith("https://")) return path
+  const base = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '') 
+    : "http://localhost:5000"
+  return `${base}${path.startsWith('/') ? '' : '/'}${path}`
+}
 
 /**
  * Submit consultation request form to backend API
@@ -48,7 +59,7 @@ export const fetchTeamMembers = async (category = "") => {
 }
 
 /**
- * Fetch contact information from backend API
+ * Fetch contact info from backend API
  */
 export const fetchContactInfo = async () => {
   try {
@@ -58,4 +69,12 @@ export const fetchContactInfo = async () => {
     console.error("API Error - fetchContactInfo:", error)
     return { success: false, data: null }
   }
+}
+
+export default {
+  submitKonsultasiForm,
+  fetchArtikels,
+  fetchTeamMembers,
+  fetchContactInfo,
+  getFileUrl,
 }

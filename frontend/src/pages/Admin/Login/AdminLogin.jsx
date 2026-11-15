@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../../context/AuthContext"
 import fiableLogo from "../../../assets/image/logo.svg"
 
-const API = "http://localhost:5000/api/v1"
+const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
 
 const AdminLogin = () => {
   const { login } = useAuth()

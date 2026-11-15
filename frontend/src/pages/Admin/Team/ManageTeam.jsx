@@ -4,7 +4,7 @@ import AdminLayout from "../../../components/admin/AdminLayout"
 import ConfirmModal from "../../../components/admin/ConfirmModal"
 import { useAuth } from "../../../context/AuthContext"
 
-const API = "http://localhost:5000/api/v1"
+const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
 
 const ManageTeam = () => {
   const { token } = useAuth()
