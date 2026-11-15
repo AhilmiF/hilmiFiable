@@ -5,6 +5,13 @@ import { useAuth } from "../../../context/AuthContext"
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1` : "http://localhost:5000/api/v1"
 
+// Kategori posisi tim utama
+const DEFAULT_POSITIONS = [
+  { id: "partner", name: "PARTNER PROFILE", slug: "partner", isSystem: true },
+  { id: "legalConsultan", name: "LEGAL CONSULTANT PROFILE", slug: "legalConsultan", isSystem: true },
+  { id: "lawyer", name: "LAWYER PROFILE", slug: "lawyer", isSystem: true },
+]
+
 const ManagePosition = () => {
   const { token } = useAuth()
   const [positions, setPositions] = useState([])
@@ -16,16 +23,33 @@ const ManagePosition = () => {
   const [loading, setLoading] = useState(false)
 
   const fetchPositions = async () => {
-    const res = await fetch(`${API}/position`)
-    const data = await res.json()
-    if (data.success) setPositions(data.data)
+    try {
+      const res = await fetch(`${API}/position`)
+      const data = await res.json()
+      if (data.success && data.data) {
+        // Gabungkan 3 posisi profil tim utama di urutan teratas
+        const customPositions = data.data.filter(
+          (p) => !["partner", "legalconsultan", "lawyer"].includes((p.slug || "").toLowerCase())
+        )
+        setPositions([...DEFAULT_POSITIONS, ...customPositions])
+      } else {
+        setPositions(DEFAULT_POSITIONS)
+      }
+    } catch {
+      setPositions(DEFAULT_POSITIONS)
+    }
   }
 
-  useEffect(() => { fetchPositions() }, [])
+  useEffect(() => {
+    fetchPositions()
+  }, [])
 
   const handleNameChange = (e) => {
     const val = e.target.value
-    const slug = val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")
+    const slug = val
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
     setForm({ ...form, name: val, slug })
   }
 
@@ -33,6 +57,20 @@ const ManagePosition = () => {
     e.preventDefault()
     setLoading(true)
     setMsg({ type: "", text: "" })
+
+    // Jika yang diedit adalah system position bawaan
+    if (["partner", "legalConsultan", "lawyer"].includes(editId)) {
+      setPositions((prev) =>
+        prev.map((item) => (item.id === editId ? { ...item, name: form.name.toUpperCase() } : item))
+      )
+      setMsg({ type: "success", text: "Posisi berhasil diperbarui." })
+      setView("list")
+      setForm({ name: "", slug: "" })
+      setEditId(null)
+      setLoading(false)
+      return
+    }
+
     try {
       const url = editId ? `${API}/position/admin/${editId}` : `${API}/position/admin`
       const method = editId ? "PUT" : "POST"
@@ -66,6 +104,13 @@ const ManagePosition = () => {
   }
 
   const handleDelete = async () => {
+    if (["partner", "legalConsultan", "lawyer"].includes(modal.id)) {
+      setPositions((prev) => prev.filter((item) => item.id !== modal.id))
+      setMsg({ type: "success", text: "Posisi berhasil dihapus dari daftar." })
+      setModal({ open: false, id: null })
+      return
+    }
+
     try {
       const res = await fetch(`${API}/position/admin/${modal.id}`, {
         method: "DELETE",
@@ -91,8 +136,17 @@ const ManagePosition = () => {
         {view === "list" ? (
           <>
             <div className="admin-page-header">
-              <h2 className="admin-page-title" style={{ margin: 0 }}>Manage Team</h2>
-              <button className="btn-header" onClick={() => { setView("add"); setForm({ name: "", slug: "" }); setMsg({ type: "", text: "" }) }}>
+              <h2 className="admin-page-title" style={{ margin: 0 }}>
+                Manage Position
+              </h2>
+              <button
+                className="btn-header"
+                onClick={() => {
+                  setView("add")
+                  setForm({ name: "", slug: "" })
+                  setMsg({ type: "", text: "" })
+                }}
+              >
                 Tambah
               </button>
             </div>
@@ -102,24 +156,38 @@ const ManagePosition = () => {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>No.</th>
+                  <th style={{ width: "60px" }}>No.</th>
                   <th>Kategori</th>
-                  <th>Aksi</th>
+                  <th style={{ width: "100px", textAlign: "center" }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {positions.length === 0 ? (
-                  <tr><td colSpan="3" style={{ textAlign: "center", color: "#999" }}>Belum ada posisi.</td></tr>
-                ) : positions.map((p, i) => (
-                  <tr key={p.id}>
-                    <td>{i + 1}</td>
-                    <td>{p.name}</td>
-                    <td>
-                      <button className="action-btn" onClick={() => handleEdit(p)} title="Edit">✏️</button>
-                      <button className="action-btn action-btn--danger" onClick={() => setModal({ open: true, id: p.id })} title="Hapus">🗑</button>
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: "center", color: "#999" }}>
+                      Belum ada posisi.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  positions.map((p, i) => (
+                    <tr key={p.id}>
+                      <td>{i + 1}</td>
+                      <td style={{ fontWeight: 500, letterSpacing: "0.5px" }}>{p.name}</td>
+                      <td style={{ textAlign: "center" }}>
+                        <button className="action-btn" onClick={() => handleEdit(p)} title="Edit">
+                          ✏️
+                        </button>
+                        <button
+                          className="action-btn action-btn--danger"
+                          onClick={() => setModal({ open: true, id: p.id })}
+                          title="Hapus"
+                        >
+                          🗑
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </>
@@ -134,6 +202,7 @@ const ManagePosition = () => {
                   className="admin-form-input"
                   value={form.name}
                   onChange={handleNameChange}
+                  placeholder="Misal: LAWYER PROFILE"
                   required
                 />
               </div>
@@ -143,14 +212,20 @@ const ManagePosition = () => {
                   className="admin-form-input"
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  placeholder="misal: lawyer-profile"
                 />
               </div>
               <div className="form-submit-row">
-                <button type="button" className="btn-primary" style={{ background: "#888", marginRight: "8px" }} onClick={() => setView("list")}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ background: "#888", marginRight: "8px" }}
+                  onClick={() => setView("list")}
+                >
                   Batal
                 </button>
                 <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? "Menyimpan..." : "Tambah"}
+                  {loading ? "Menyimpan..." : view === "edit" ? "Simpan" : "Tambah"}
                 </button>
               </div>
             </form>
