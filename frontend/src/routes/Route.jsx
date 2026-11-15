@@ -21,6 +21,8 @@ import ManageCategory from "../pages/Admin/Category/ManageCategory"
 import ManageGallery from "../pages/Admin/Gallery/ManageGallery"
 import ManageTeam from "../pages/Admin/Team/ManageTeam"
 import AddTeam from "../pages/Admin/Team/AddTeam"
+import EditTeam from "../pages/Admin/Team/EditTeam"
+import ViewTeam from "../pages/Admin/Team/ViewTeam"
 import ManagePosition from "../pages/Admin/Position/ManagePosition"
 
 // Route guard
@@ -51,6 +53,8 @@ const AppRoutes = () => (
     <Route path="/admin/manage-gallery" element={<ProtectedRoute><ManageGallery /></ProtectedRoute>} />
     <Route path="/admin/manage-team" element={<ProtectedRoute><ManageTeam /></ProtectedRoute>} />
     <Route path="/admin/add-team" element={<ProtectedRoute><AddTeam /></ProtectedRoute>} />
+    <Route path="/admin/edit-team/:id" element={<ProtectedRoute><EditTeam /></ProtectedRoute>} />
+    <Route path="/admin/view-team/:id" element={<ProtectedRoute><ViewTeam /></ProtectedRoute>} />
     <Route path="/admin/manage-position" element={<ProtectedRoute><ManagePosition /></ProtectedRoute>} />
   </Routes>
 )

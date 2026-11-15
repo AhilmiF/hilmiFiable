@@ -7,7 +7,7 @@ import { teamCategories } from "../../data/teamData"
 import { fetchTeamMembers } from "../../services/api"
 
 const Partner = () => {
-  const initialPartners = teamCategories.find((cat) => cat.id === "partner")?.member || []
+  const initialPartners = teamCategories.find((cat) => cat.id === "partner")?.members || []
   const [partners, setPartners] = useState(initialPartners)
 
   useEffect(() => {
@@ -21,7 +21,8 @@ const Partner = () => {
           specialty: item.specialty,
           bio: item.bio,
           bioDua: item.bioDua,
-          photo: initialPartners[idx % initialPartners.length]?.photo || item.photoUrl,
+          photo: initialPartners[idx % initialPartners.length]?.photo,
+          photoUrl: item.photoUrl,
           instagramUrl: item.instagramUrl,
           linkedinUrl: item.linkedinUrl,
           portfolioUrl: item.portfolioUrl,
@@ -48,4 +49,4 @@ const Partner = () => {
   )
 }
 
-export default Partner
+export default Partner
