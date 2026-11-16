@@ -12,9 +12,9 @@ const sizeClasses = {
 };
 
 const Button = (props)=>{
-  const {children, variant = "primary", size = "md", className = "", onClick} = props;
+  const {children, variant = "primary", size = "md", className = "", onClick, type = "button", disabled = false} = props;
     return (
-     <button type="button" onClick={onClick} className={`${sizeClasses[size]} ${variantClasses[variant]} ${className} rounded-md font-bold transition-all duration-200`}>
+     <button type={type} disabled={disabled} onClick={onClick} className={`${sizeClasses[size]} ${variantClasses[variant]} ${className} rounded-md font-bold transition-all duration-200`}>
             {children}
         </button>
     )

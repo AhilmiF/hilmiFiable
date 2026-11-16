@@ -14,6 +14,7 @@ import Konsul from "../pages/Konsul/Konsul"
 // Admin pages
 import AdminLogin from "../pages/Admin/Login/AdminLogin"
 import Dashboard from "../pages/Admin/Dashboard/Dashboard"
+import ManageKonsultasi from "../pages/Admin/Konsultasi/ManageKonsultasi"
 import AddPost from "../pages/Admin/Post/AddPost"
 import ManagePost from "../pages/Admin/Post/ManagePost"
 import EditPost from "../pages/Admin/Post/EditPost"
@@ -46,6 +47,7 @@ const AppRoutes = () => (
 
     {/* Admin - protected */}
     <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/admin/manage-konsultasi" element={<ProtectedRoute><ManageKonsultasi /></ProtectedRoute>} />
     <Route path="/admin/add-post" element={<ProtectedRoute><AddPost /></ProtectedRoute>} />
     <Route path="/admin/manage-post" element={<ProtectedRoute><ManagePost /></ProtectedRoute>} />
     <Route path="/admin/edit-post/:id" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />

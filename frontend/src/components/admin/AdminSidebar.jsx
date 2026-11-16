@@ -4,6 +4,7 @@ import fiableLogo from "../../assets/image/logo.svg"
 
 const menuItems = [
   { to: "/admin", label: "Dashboard", icon: "✔", exact: true },
+  { to: "/admin/manage-konsultasi", label: "Konsultasi Masuk", icon: "✉" },
   { to: "/admin/add-post", label: "Add Post", icon: "📄" },
   { to: "/admin/manage-post", label: "Manage Post", icon: "📋" },
   { to: "/admin/manage-category", label: "Manage Category", icon: "📁" },
