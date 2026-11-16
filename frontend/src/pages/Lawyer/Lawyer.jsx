@@ -14,20 +14,40 @@ const Lawyer = () => {
     const loadLawyers = async () => {
       const res = await fetchTeamMembers("lawyer")
       if (res.success && res.data && res.data.length > 0) {
-        const mapped = res.data.map((item, idx) => ({
-          id: item.id,
-          name: item.name,
-          role: item.role,
-          specialty: item.specialty,
-          bio: item.bio,
-          bioDua: item.bioDua,
-          photo: initialLawyers[idx % initialLawyers.length]?.photo,
-          photoUrl: item.photoUrl,
-          instagramUrl: item.instagramUrl,
-          linkedinUrl: item.linkedinUrl,
-          portfolioUrl: item.portfolioUrl,
-        }))
-        setLawyers(mapped)
+        // Gabungkan data dari DB dengan initial static data jika data DB lebih sedikit dari template
+        const dbMap = new Map(res.data.map((item) => [item.name.toLowerCase().trim(), item]))
+        
+        const merged = initialLawyers.map((init, idx) => {
+          const matchedDb = dbMap.get(init.name.toLowerCase().trim())
+          if (matchedDb) {
+            dbMap.delete(init.name.toLowerCase().trim())
+            return {
+              ...init,
+              ...matchedDb,
+              photo: matchedDb.photoUrl || init.photo,
+            }
+          }
+          return init
+        })
+
+        // Tambahkan sisa data baru dari admin DB yang belum ada di initial
+        for (const extra of dbMap.values()) {
+          merged.push({
+            id: extra.id,
+            name: extra.name,
+            role: extra.role,
+            specialty: extra.specialty,
+            bio: extra.bio,
+            bioDua: extra.bioDua,
+            photo: extra.photoUrl,
+            photoUrl: extra.photoUrl,
+            instagramUrl: extra.instagramUrl,
+            linkedinUrl: extra.linkedinUrl,
+            portfolioUrl: extra.portfolioUrl,
+          })
+        }
+
+        setLawyers(merged)
       }
     }
     loadLawyers()

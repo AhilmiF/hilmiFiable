@@ -14,20 +14,38 @@ const Partner = () => {
     const loadPartners = async () => {
       const res = await fetchTeamMembers("partner")
       if (res.success && res.data && res.data.length > 0) {
-        const mapped = res.data.map((item, idx) => ({
-          id: item.id,
-          name: item.name,
-          role: item.role,
-          specialty: item.specialty,
-          bio: item.bio,
-          bioDua: item.bioDua,
-          photo: initialPartners[idx % initialPartners.length]?.photo,
-          photoUrl: item.photoUrl,
-          instagramUrl: item.instagramUrl,
-          linkedinUrl: item.linkedinUrl,
-          portfolioUrl: item.portfolioUrl,
-        }))
-        setPartners(mapped)
+        const dbMap = new Map(res.data.map((item) => [item.name.toLowerCase().trim(), item]))
+
+        const merged = initialPartners.map((init) => {
+          const matchedDb = dbMap.get(init.name.toLowerCase().trim())
+          if (matchedDb) {
+            dbMap.delete(init.name.toLowerCase().trim())
+            return {
+              ...init,
+              ...matchedDb,
+              photo: matchedDb.photoUrl || init.photo,
+            }
+          }
+          return init
+        })
+
+        for (const extra of dbMap.values()) {
+          merged.push({
+            id: extra.id,
+            name: extra.name,
+            role: extra.role,
+            specialty: extra.specialty,
+            bio: extra.bio,
+            bioDua: extra.bioDua,
+            photo: extra.photoUrl,
+            photoUrl: extra.photoUrl,
+            instagramUrl: extra.instagramUrl,
+            linkedinUrl: extra.linkedinUrl,
+            portfolioUrl: extra.portfolioUrl,
+          })
+        }
+
+        setPartners(merged)
       }
     }
     loadPartners()
