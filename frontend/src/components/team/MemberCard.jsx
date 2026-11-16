@@ -1,8 +1,14 @@
 import ig from "../../assets/icons/ig.svg"
 import linkind from "../../assets/icons/linkind.svg"
 import { getFileUrl } from "../../services/api"
+import partnerSatu from "../../assets/image/timKami/PartnerProfile/partnerSatu.png"
+import partnerDua from "../../assets/image/timKami/PartnerProfile/partnerDua.png"
+import consultanSatu from "../../assets/image/timKami/consultan/consultanSatu.png"
+import consultanDua from "../../assets/image/timKami/consultan/consultanDua.png"
 
-export default function MemberCard({ member }) {
+const FALLBACK_MEMBER_IMAGES = [partnerSatu, partnerDua, consultanSatu, consultanDua]
+
+export default function MemberCard({ member, index = 0 }) {
   const hasValidPortfolio =
     member.portfolioUrl &&
     member.portfolioUrl.trim() !== "" &&
@@ -11,11 +17,45 @@ export default function MemberCard({ member }) {
 
   const portfolioDownloadUrl = hasValidPortfolio ? getFileUrl(member.portfolioUrl) : null
 
+  const getImageSrc = () => {
+    // 1. Jika objek import lokal sudah valid
+    if (member.photo && typeof member.photo === "object") return member.photo
+
+    // 2. Jika string import Vite dev atau nama file aset lokal
+    if (typeof member.photo === "string") {
+      if (member.photo.includes("partnerSatu")) return partnerSatu
+      if (member.photo.includes("partnerDua")) return partnerDua
+      if (member.photo.includes("consultanSatu")) return consultanSatu
+      if (member.photo.includes("consultanDua")) return consultanDua
+      if (member.photo.startsWith("http://") || member.photo.startsWith("https://")) return member.photo
+      if (member.photo.startsWith("/uploads/") || member.photo.startsWith("uploads/")) return getFileUrl(member.photo)
+    }
+
+    // 3. Jika ada photoUrl dari database
+    if (member.photoUrl) {
+      if (member.photoUrl.includes("partnerSatu")) return partnerSatu
+      if (member.photoUrl.includes("partnerDua")) return partnerDua
+      if (member.photoUrl.includes("consultanSatu")) return consultanSatu
+      if (member.photoUrl.includes("consultanDua")) return consultanDua
+      if (member.photoUrl.startsWith("http://") || member.photoUrl.startsWith("https://")) return member.photoUrl
+      if (member.photoUrl.startsWith("/uploads/") || member.photoUrl.startsWith("uploads/")) return getFileUrl(member.photoUrl)
+    }
+
+    // 4. Fallback ke gambar default
+    return FALLBACK_MEMBER_IMAGES[index % FALLBACK_MEMBER_IMAGES.length]
+  }
+
+  const defaultFallback = FALLBACK_MEMBER_IMAGES[index % FALLBACK_MEMBER_IMAGES.length]
+
   return (
     <div className="flex flex-col gap-6 sm:gap-10 lg:flex-row mb-12" key={member.id}>
       <img
-        src={member.photo || (member.photoUrl ? getFileUrl(member.photoUrl) : "/assets/image/placeholder.png")}
+        src={getImageSrc()}
         alt={member.name}
+        onError={(e) => {
+          e.target.onerror = null
+          e.target.src = defaultFallback
+        }}
         className="h-auto w-full max-w-93 object-cover sm:w-2/3 lg:shrink-0"
       />
       <div className="flex-1">

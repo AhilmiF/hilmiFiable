@@ -39,8 +39,8 @@ const Lawyer = () => {
       <Head>Lawyer Profile</Head>
       <div className="py-5"></div>
       <div className="mx-auto flex max-w-7xl flex-wrap justify-center gap-x-10 gap-y-10 px-5 sm:px-10 lg:px-14.75">
-        {lawyers.map((member) => (
-          <LawyerCard key={member.id} member={member} />
+        {lawyers.map((member, index) => (
+          <LawyerCard key={member.id} member={member} index={index} />
         ))}
       </div>
       <div className="py-5"></div>

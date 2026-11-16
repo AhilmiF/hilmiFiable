@@ -39,8 +39,8 @@ const Consultan = () => {
       <Head>Legal Consultant Profile</Head>
       <div className="py-5"></div>
       <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-14.75">
-        {consultants.map((member) => (
-          <MemberCard key={member.id} member={member} />
+        {consultants.map((member, index) => (
+          <MemberCard key={member.id} member={member} index={index} />
         ))}
       </div>
       <div className="py-5"></div>

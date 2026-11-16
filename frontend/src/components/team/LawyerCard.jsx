@@ -1,8 +1,12 @@
 import ig from "../../assets/icons/ig.svg"
 import linkind from "../../assets/icons/linkind.svg"
 import { getFileUrl } from "../../services/api"
+import lawyerSatu from "../../assets/image/timKami/lawyer/lawyerSatu.png"
+import lawyerDua from "../../assets/image/timKami/lawyer/lawyerdua.png"
 
-const LawyerCard = ({ member }) => {
+const FALLBACK_LAWYER_IMAGES = [lawyerSatu, lawyerDua]
+
+const LawyerCard = ({ member, index = 0 }) => {
   const hasValidPortfolio =
     member.portfolioUrl &&
     member.portfolioUrl.trim() !== "" &&
@@ -11,11 +15,34 @@ const LawyerCard = ({ member }) => {
 
   const portfolioDownloadUrl = hasValidPortfolio ? getFileUrl(member.portfolioUrl) : null
 
+  const getImageSrc = () => {
+    if (member.photo && typeof member.photo === "object") return member.photo
+    if (typeof member.photo === "string") {
+      if (member.photo.includes("lawyerSatu")) return lawyerSatu
+      if (member.photo.includes("lawyerdua") || member.photo.includes("lawyerDua")) return lawyerDua
+      if (member.photo.startsWith("http://") || member.photo.startsWith("https://")) return member.photo
+      if (member.photo.startsWith("/uploads/") || member.photo.startsWith("uploads/")) return getFileUrl(member.photo)
+    }
+    if (member.photoUrl) {
+      if (member.photoUrl.includes("lawyerSatu")) return lawyerSatu
+      if (member.photoUrl.includes("lawyerdua") || member.photoUrl.includes("lawyerDua")) return lawyerDua
+      if (member.photoUrl.startsWith("http://") || member.photoUrl.startsWith("https://")) return member.photoUrl
+      if (member.photoUrl.startsWith("/uploads/") || member.photoUrl.startsWith("uploads/")) return getFileUrl(member.photoUrl)
+    }
+    return FALLBACK_LAWYER_IMAGES[index % FALLBACK_LAWYER_IMAGES.length]
+  }
+
+  const defaultFallback = FALLBACK_LAWYER_IMAGES[index % FALLBACK_LAWYER_IMAGES.length]
+
   return (
     <div className="flex w-full max-w-100.75 flex-col justify-baseline">
       <img
-        src={member.photo || (member.photoUrl ? getFileUrl(member.photoUrl) : "/assets/image/placeholder.png")}
+        src={getImageSrc()}
         alt={member.name}
+        onError={(e) => {
+          e.target.onerror = null
+          e.target.src = defaultFallback
+        }}
         className="h-auto w-full object-cover"
       />
       <div className="mt-4">

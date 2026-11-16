@@ -39,8 +39,8 @@ const Partner = () => {
       <Head>Partner Profile</Head>
       <div className="py-5"></div>
       <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-14.75">
-        {partners.map((member) => (
-          <MemberCard key={member.id} member={member} />
+        {partners.map((member, index) => (
+          <MemberCard key={member.id} member={member} index={index} />
         ))}
       </div>
       <div className="py-5"></div>

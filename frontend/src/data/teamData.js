@@ -10,7 +10,7 @@ export const teamCategories = [
   {
     id: "partner",
     title: "Partner Profile",
-    member: [
+    members: [
       {
         id: 1,
         name: "Kevin Pratama Putra, S.H.",
@@ -45,7 +45,6 @@ export const teamCategories = [
         portfolioUrl: "/portfolio/vino.pdf",
       },
     ],
-    get member() { return this.members },
   },
   {
     id: "legalConsultan",
