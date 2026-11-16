@@ -34,7 +34,7 @@ export default function TimKami() {
         >
             <div className="py-5"></div>
             {
-            partnerCategory.member.map((member) => (
+            (partnerCategory?.members || partnerCategory?.member || []).map((member) => (
               <MemberCard key={member.id} member={member}/>
             ))}
           <div className="py-5"></div>
@@ -50,7 +50,7 @@ export default function TimKami() {
         >
             <div className="py-5"></div>
           {
-          consultanCategory.members.map((member) => (
+          (consultanCategory?.members || []).map((member) => (
             <MemberCard key={member.id} member={member}/>
           ))}
           <div className="py-5"></div>
@@ -66,7 +66,7 @@ export default function TimKami() {
 >
   <div className="py-5"></div>
   <div className="grid grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-2">
-    {lawyerCategory.members.map((member) => (
+    {(lawyerCategory?.members || []).map((member) => (
       <LawyerCard key={member.id} member={member} />
     ))}
   </div>
