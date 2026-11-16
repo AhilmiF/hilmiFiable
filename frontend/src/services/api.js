@@ -15,6 +15,8 @@ export const getFileUrl = (path) => {
  * Submit consultation request form to backend API
  */
 export const submitKonsultasiForm = async (data) => {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
   try {
     const response = await fetch(`${API_BASE_URL}/konsultasi`, {
       method: "POST",
@@ -22,9 +24,15 @@ export const submitKonsultasiForm = async (data) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
+      signal: controller.signal,
     })
+    clearTimeout(timeoutId)
     return await response.json()
   } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === "AbortError") {
+      return { success: false, message: "Koneksi ke server terlalu lama. Coba beberapa saat lagi." }
+    }
     console.error("API Error - submitKonsultasiForm:", error)
     return { success: false, message: "Gagal terhubung ke server. Periksa koneksi Anda." }
   }
