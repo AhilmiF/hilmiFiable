@@ -47,7 +47,9 @@ export const getArtikelByIdOrSlug = async (req, res) => {
 // Admin: Create article
 export const createArtikel = async (req, res) => {
   try {
-    const { judul, slug, keterangan, kategori, konten } = req.body
+    const { judul, slug, kategori } = req.body
+    const keterangan = req.body.keterangan || req.body.konten || ""
+    const konten = req.body.konten || req.body.keterangan || ""
     const photoUrl = req.file ? `/uploads/${req.file.filename}` : req.body.photoUrl || ""
 
     if (!judul || !keterangan) {
@@ -77,12 +79,23 @@ export const createArtikel = async (req, res) => {
 export const updateArtikel = async (req, res) => {
   try {
     const { id } = req.params
-    const { judul, slug, keterangan, kategori, konten } = req.body
+    const { judul, slug, kategori } = req.body
+    const keterangan = req.body.keterangan || req.body.konten
+    const konten = req.body.konten || req.body.keterangan
     const photoUrl = req.file ? `/uploads/${req.file.filename}` : req.body.photoUrl
+
+    const updateData = {
+      ...(judul && { judul }),
+      ...(slug && { slug }),
+      ...(kategori !== undefined && { kategori }),
+      ...(keterangan !== undefined && { keterangan }),
+      ...(konten !== undefined && { konten }),
+      ...(photoUrl !== undefined && { photoUrl }),
+    }
 
     const artikel = await prisma.artikel.update({
       where: { id },
-      data: { judul, slug, keterangan, kategori, konten, photoUrl },
+      data: updateData,
     })
 
     res.json({ success: true, message: "Artikel berhasil diperbarui.", data: artikel })

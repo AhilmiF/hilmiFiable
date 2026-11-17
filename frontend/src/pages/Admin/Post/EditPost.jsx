@@ -18,8 +18,8 @@ const EditPost = () => {
   useEffect(() => {
     fetch(`${API}/artikel/${id}`).then(r => r.json()).then(d => {
       if (d.success) {
-        const { judul, slug, kategori, konten } = d.data
-        setForm({ judul, slug, kategori: kategori || "", konten: konten || "" })
+        const { judul, slug, kategori, konten, keterangan } = d.data
+        setForm({ judul, slug, kategori: kategori || "", konten: konten || keterangan || "" })
       }
     })
     fetch(`${API}/position`).then(r => r.json()).then(d => {
@@ -34,6 +34,9 @@ const EditPost = () => {
 
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
+    if (!form.keterangan && form.konten) {
+      fd.append("keterangan", form.konten)
+    }
     if (photo) fd.append("photo", photo)
 
     try {

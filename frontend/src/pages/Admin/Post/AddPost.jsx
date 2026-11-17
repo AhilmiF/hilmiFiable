@@ -33,6 +33,9 @@ const AddPost = () => {
 
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
+    if (!form.keterangan && form.konten) {
+      fd.append("keterangan", form.konten)
+    }
     if (photo) fd.append("photo", photo)
 
     try {
